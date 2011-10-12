@@ -48,7 +48,7 @@ class smartsend extends base {
    * @return storepickup
    */
   function smartsend() {
-    global $order, $db;
+    global $order, $db , $messageStack;
     
         
     $this->code = 'smartsend';
@@ -60,31 +60,7 @@ class smartsend extends base {
     
     $this->enabled = ((MODULE_SHIPPING_SMARTSEND_STATUS == 'True') ? true : false);
 
-
-    if ( ($this->enabled == true) && ((int)MODULE_SHIPPING_SMARTSEND_ZONE > 0) ) {
-      $check_flag = false;
-      $check = $db->Execute("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . "
-                             where geo_zone_id = '" . MODULE_SHIPPING_SMARTSEND_ZONE . "'
-                             and zone_country_id = '" . $order->delivery['country']['id'] . "'
-                             order by zone_id");
-      while (!$check->EOF) {
-        if ($check->fields['zone_id'] < 1) {
-          $check_flag = true;
-          break;
-        } elseif ($check->fields['zone_id'] == $order->delivery['zone_id']) {
-          $check_flag = true;
-          break;
-        }
-        $check->MoveNext();
-      }
-
-      if ($check_flag == false) {
-        $this->enabled = false;
-      }
-      
-
-    }
-    
+       
   }
   /**
    * Obtain quote from shipping system/calculations
@@ -105,10 +81,8 @@ class smartsend extends base {
         $tosuburb       = $order->delivery['city'];
     }
     
-    $post_url = "http://api.dev.smartsend.com.au/";
-    
-    
-    # POST PARAMETER VALUES
+    # POST PARAMETER VALUES    
+    $post_url = "http://api.dev.smartsend.com.au/";    
     
     $post_param_values["METHOD"]                = "GetQuote";
     $post_param_values["FROMCOUNTRYCODE"]       = "AU";
@@ -247,86 +221,149 @@ class smartsend extends base {
   function install() {
     global $db;
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added)
-        values ('Enable Smart Send', 'MODULE_SHIPPING_SMARTSEND_STATUS', 'True', 'Do you want to offer Smart Send plugin?', '66', '0', 'zen_cfg_select_option(array(\'True\', \'False\'), ', now())");
+        values ('Enable Smart Send', 'MODULE_SHIPPING_SMARTSEND_STATUS', 'True', 
+        'Do you want to offer Smart Send plugin?', 
+        '66', '0', 'zen_cfg_select_option(array(\'True\', \'False\'), ', now())");
    
     # USERCODE
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
-        values ('USER CODE', 'MODULE_SHIPPING_SMARTSEND_USERCODE', '', '', '66', '0', now())");
+        values ('USER CODE', 'MODULE_SHIPPING_SMARTSEND_USERCODE', '', 
+        '(Optional) The code corresponding to the USERTYPE value. ', 
+        '66', '0', now())");
 
     # USERTYPE
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
-        values ('USER TYPE', 'MODULE_SHIPPING_SMARTSEND_USERTYPE', '', '', '66', '0', now())");
+        values ('USER TYPE', 'MODULE_SHIPPING_SMARTSEND_USERTYPE', '',
+        '(Optional) The user type making the quote request. Used in conjunction with USERCODE if appropriate. Valid values are , ebay, corporate, promotion.', 
+        '66', '0', now())");
 
     # TRANSPORTASSURANCE
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
-        values ('TRANSPORT ASSURANCE', 'MODULE_SHIPPING_SMARTSEND_TRANSPORTASSURANCE', '0.00', '', '66', '0', now())");
+        values ('TRANSPORT ASSURANCE', 'MODULE_SHIPPING_SMARTSEND_TRANSPORTASSURANCE', '0.00', 
+        '(Optional) The wholesale value of the goods, specified in AUS $ for the purposes of transport assurance cover. Maximum value 10000.00', 
+        '66', '0', now())");
     
     # TAILLIFT
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order,use_function, set_function,  date_added) 
-        values ('TAIL LIFT', 'MODULE_SHIPPING_SMARTSEND_TAILLIFT', '0', '', '66', '0', 'zen_get_tail_class_title', 'zen_cfg_pull_down_tail_classes(',  now())");
+        values ('TAIL LIFT', 'MODULE_SHIPPING_SMARTSEND_TAILLIFT', '0', 
+        '(Optional) Specifies whether a tail lift service is required. Acceptable values are None, AtPickup, AtDestination, Both', 
+        '66', '0', 'zen_get_tail_class_title', 'zen_cfg_pull_down_tail_classes(',  now())");
                 
     # RECEIPTEDDELIVERY
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
-        values ('RECEIPTED DELIVERY', 'MODULE_SHIPPING_SMARTSEND_RECEIPTEDDELIVERY', '', '', '66', '0', now())");
+        values ('RECEIPTED DELIVERY', 'MODULE_SHIPPING_SMARTSEND_RECEIPTEDDELIVERY', '', 
+        '(Optional) Boolean flag (true/false) that specifies whether or not recipient is required to sign for the consignment', 
+        '66', '0', now())");
 
-    
     # SERVICE TYPE
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order,use_function, set_function,  date_added) 
-        values ('SERVICE TYPE', 'MODULE_SHIPPING_SMARTSEND_SERVICETYPE', '0', '', '66', '0', 'zen_get_service_class_title', 'zen_cfg_pull_down_service_classes(',  now())");
-
+        values ('SERVICE TYPE', 'MODULE_SHIPPING_SMARTSEND_SERVICETYPE', '0', 
+        '(Optional)', 
+        '66', '0', 'zen_get_service_class_title', 'zen_cfg_pull_down_service_classes(',  now())");
     
-    # RETURNURL
+    
+    # COUNTRY CODE
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
-        values ('RETURN URL', 'MODULE_SHIPPING_SMARTSEND_RETURNURL', '', '', '66', '0', now())");
+        values ('COUNTRY CODE', 'MODULE_SHIPPING_SMARTSEND_COUNTRYCODE', 'AU', 
+        '(Optional) The 2 letter country code (ISO-3166) where the consignment will be picked up (Default AU).', 
+        '66', '0', now())");
 
-    # CANCELURL
+    # POSTCODE
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
-        values ('CANCEL URL', 'MODULE_SHIPPING_SMARTSEND_CANCELURL', '', '', '66', '0', now())");
+        values ('POST CODE', 'MODULE_SHIPPING_SMARTSEND_POSTCODE', '', 
+        '<span style=\'color:red\'>(Required)</span> The post code where the consignment will be picked up. ', 
+        '66', '0', now())");
 
-    # NOTIFYURL
+    # SUBURBAN
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
-        values ('NOTIFY URL', 'MODULE_SHIPPING_SMARTSEND_NOTIFYURL', '', '', '66', '0', now())");
+        values ('SUBURBAN', 'MODULE_SHIPPING_SMARTSEND_SUBURB', 'sydney', 
+        '<span style=\'color:red\'>(Required)</span> The suburb/city where the consignment will be picked up. Must be valid when combined with FROMPOSTCODE otherwise an error will be returned. ', 
+        '66', '0', now())");
 
-    /*
-    $db->Execute("insert into " . TABLE_CONFIGURATION . " (
-        configuration_title, 
-        configuration_key, 
-        configuration_value, 
-        configuration_description, 
-        configuration_group_id, 
-        sort_order, 
-        use_function, 
-        set_function, 
-        date_added)        
-    values (
-        'Tax Class', 
-        'MODULE_SHIPPING_STOREPICKUP_TAX_CLASS', 
-        '0', 
-        'Use the following tax class on the shipping fee.', 
-        '6', 
-        '0', 
-        'zen_get_tax_class_title', 
-        'zen_cfg_pull_down_tax_classes(', 
-        now())");
-    */
+    # CONTACT COMPANY
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('CONTACT COMPANY', 'MODULE_SHIPPING_SMARTSEND_CONTACTCOMPANY', '', 
+        '(Optional) The contact company responsible for the booking. ', 
+        '66', '0', now())");
+
+    # CONTACT NAME    
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('CONTACT NAME', 'MODULE_SHIPPING_SMARTSEND_CONTACTNAME', '', 
+        '(Optional) The name of the contact person responsible for the booking. ', 
+        '66', '0', now())");
     
+    # CONTACT PHONE 
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('CONTACT PHONE', 'MODULE_SHIPPING_SMARTSEND_CONTACTPHONE', '', 
+        '<span style=\'color:red\'>(Required)</span> Contact phone of the person responsible for the booking (10 digits - area code included); critical for verification purposes. ', 
+        '66', '0', now())");
     
-    # install smartsend quotes table    
-    $tables = $db->Execute("SHOW TABLES like 'smartsend_quotes'");
-    if ($tables->RecordCount() <= 0) {
-        $db->Execute("
-            CREATE TABLE `smartsend_quotes` (
-            `quotes_id` INT( 11 ) NOT NULL ,
-            `order_id` INT( 11 ) NOT NULL ,
-            `total` FLOAT NOT NULL ,
-            `service` VARCHAR( 256 ) NOT NULL ,
-            `transtime` VARCHAR( 256 ) NOT NULL ,
-            `estimate_max` INT NOT NULL ,
-            `estimate_min` INT NOT NULL ,
-            PRIMARY KEY ( `quotes_id` )
-            ) ENGINE = MYISAM");
-    }
+    # CONTACT EMAIL    
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('CONTACT EMAIL', 'MODULE_SHIPPING_SMARTSEND_CONTACTEMAIL', '', 
+        '<span style=\'color:red\'>(Required)</span> The email address of the person to be contacted regarding the booking if required; critical for verification purposes. ', 
+        '66', '0', now())");
     
+    # PICKUP CONTACT     
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('PICKUP CONTACT', 'MODULE_SHIPPING_SMARTSEND_PICKUPCONTACT', '', 
+        '<span style=\'color:red\'>(Required)</span> Name of the contact person at the pickup location. ', 
+        '66', '0', now())");
+    
+    # PICKUP ADDRESS1
+     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('PICKUP ADDRESS1', 'MODULE_SHIPPING_SMARTSEND_PICKUPADDRESS1', '', 
+        '<span style=\'color:red\'>(Required)</span>  Address line 1 of the pickup location. ', 
+        '66', '0', now())");
+     
+    # PICKUP ADDRESS2     
+     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('PICKUP ADDRESS2', 'MODULE_SHIPPING_SMARTSEND_PICKUPADDRESS2', '', 
+        '(Optional) Address line 2 of the pickup location. ', 
+        '66', '0', now())");
+     
+    # PICKUP PHONE          
+     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('PICKUP PHONE', 'MODULE_SHIPPING_SMARTSEND_PICKUPPHONE', '', 
+        '<span style=\'color:red\'>(Required)</span> Contact phone of the person at the pickup location (10 digits - area code included). ', 
+        '66', '0', now())");
+
+     
+     //PICKUPTIME Sets the pickup time window. Valid values are 1 (between 12pm and 4pm) and 2 (between 1pm and 5pm). (Default: 1)
+    
+    # PICKUP SUBURB
+     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('PICKUP SUBURB', 'MODULE_SHIPPING_SMARTSEND_PICKUPSUBURB', '', 
+        '<span style=\'color:red\'>(Required)</span> Suburb of the pickup location. ', 
+        '66', '0', now())");
+    
+    # PICKUP POSTCODE
+     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('PICKUP POSTCODE', 'MODULE_SHIPPING_SMARTSEND_PICKUPPOSTCODE', '', 
+        '<span style=\'color:red\'>(Required)</span> Post code of the pickup location. ', 
+        '66', '0', now())");
+     
+    # PICKUP STATE     
+     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('PICKUP STATE', 'MODULE_SHIPPING_SMARTSEND_PICKUPSTATE', '', 
+        '<span style=\'color:red\'>(Required)</span> State of the pickup location (use abbreviation e.g. NSW) ', 
+        '66', '0', now())");
+
+
+    # PICKUP STATE   
+     $desc_date = mysql_real_escape_string('<span style=\'color:red\'>(Required)</span> Sets the pickup date. (format dd/mm/yyyy. e.g. 25/07/2010)');    
+     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('PICKUP DATE', 'MODULE_SHIPPING_SMARTSEND_PICKUPDATE', '', 
+        '{$desc_date}', 
+        '66', '0', now())");
+     
+    # TAILLIFT
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order,use_function, set_function,  date_added) 
+        values ('PICKUPTIME', 'MODULE_SHIPPING_SMARTSEND_PICKUPTIME', '0', 
+        '<span style=\'color:red\'>(Required)</span> Sets the pickup time window. Valid values are 1 (between 12pm and 4pm) and 2 (between 1pm and 5pm). ', 
+        '66', '0', 'zen_get_picktime_class_title', 'zen_cfg_pull_down_picktime_classes(',  now())");
+    
+     
     $tables = $db->Execute("SHOW TABLES like 'smartsend_products'");    
     if ($tables->RecordCount() <= 0) {
         $db->Execute(" 
@@ -365,10 +402,21 @@ class smartsend extends base {
         'MODULE_SHIPPING_SMARTSEND_TRANSPORTASSURANCE',
         'MODULE_SHIPPING_SMARTSEND_TAILLIFT',
         'MODULE_SHIPPING_SMARTSEND_RECEIPTEDDELIVERY',
-        'MODULE_SHIPPING_SMARTSEND_SERVICETYPE',
-        'MODULE_SHIPPING_SMARTSEND_RETURNURL',
-        'MODULE_SHIPPING_SMARTSEND_CANCELURL',
-        'MODULE_SHIPPING_SMARTSEND_NOTIFYURL');   
+        'MODULE_SHIPPING_SMARTSEND_COUNTRYCODE',
+        'MODULE_SHIPPING_SMARTSEND_POSTCODE',
+        'MODULE_SHIPPING_SMARTSEND_SUBURB',
+        'MODULE_SHIPPING_SMARTSEND_CONTACTCOMPANY',
+        'MODULE_SHIPPING_SMARTSEND_CONTACTNAME',
+        'MODULE_SHIPPING_SMARTSEND_CONTACTEMAIL',
+        'MODULE_SHIPPING_SMARTSEND_PICKUPCONTACT',
+        'MODULE_SHIPPING_SMARTSEND_PICKUPADDRESS1',
+        'MODULE_SHIPPING_SMARTSEND_PICKUPADDRESS2',                    
+        'MODULE_SHIPPING_SMARTSEND_PICKUPPHONE',
+        'MODULE_SHIPPING_SMARTSEND_PICKUPSUBURB',
+        'MODULE_SHIPPING_SMARTSEND_PICKUPPOSTCODE',
+        'MODULE_SHIPPING_SMARTSEND_PICKUPSTATE',
+        'MODULE_SHIPPING_SMARTSEND_PICKUPDATE',
+        'MODULE_SHIPPING_SMARTSEND_PICKUPTIME');   
   }
   
   
@@ -482,6 +530,46 @@ class smartsend extends base {
     }
     
   }
+  
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ <new func> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  
+/* Name  : PICKUP TIME
+ * Desc  : set the PICKUP TIME value in admin
+ * Found : 'admin->shipping module'
+ * 
+ * How to access the value : just call 'MODULE_SHIPPING_SMARTSEND_TAILLIFT'
+ */
+
+  # Set func PICKUP TIME
+  function zen_cfg_pull_down_picktime_classes($id, $key = '') {
+    global $db;
+    $name = (($key) ? 'configuration[' . $key . ']' : 'configuration_value');
+    
+
+    $ptime[] = Array ("id" =>  "1" ,"text" => "between 12pm and 4pm");
+    $ptime[] = Array ("id" =>  "2","text" => "between 1pm and 5pm");
+
+    
+    return zen_draw_pull_down_menu($name, $ptime , $id);  
+    
+  }    
+  
+  # Use func PICKUP TIME
+  function zen_get_picktime_class_title($id) {
+    global $db;    
+    
+    $ptime[] = Array ("id" =>  "1" ,"text" => "between 12pm and 4pm");
+    $ptime[] = Array ("id" =>  "2","text" => "between 1pm and 5pm");
+
+    
+    foreach($ptime as $val){
+        if($val["id"] == $id){
+          return $val['text'];      
+        }
+    }
+    
+  }
+  
   
   
 ?>
