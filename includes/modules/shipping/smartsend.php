@@ -304,11 +304,18 @@ class smartsend extends base {
         '<span style=\'color:red\'>(Required)</span> The email address of the person to be contacted regarding the booking if required; critical for verification purposes. ', 
         '66', '0', now())");
     
+    # PICKUP COMPANY
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
+        values ('PICKUP COMPANY', 'MODULE_SHIPPING_SMARTSEND_PICKUPCOMPANY', '', 
+        '(Optional) Name of the company at the pickup location. ', 
+        '66', '0', now())");
+
     # PICKUP CONTACT     
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
         values ('PICKUP CONTACT', 'MODULE_SHIPPING_SMARTSEND_PICKUPCONTACT', '', 
         '<span style=\'color:red\'>(Required)</span> Name of the contact person at the pickup location. ', 
         '66', '0', now())");
+
     
     # PICKUP ADDRESS1
      $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
@@ -327,9 +334,7 @@ class smartsend extends base {
         values ('PICKUP PHONE', 'MODULE_SHIPPING_SMARTSEND_PICKUPPHONE', '', 
         '<span style=\'color:red\'>(Required)</span> Contact phone of the person at the pickup location (10 digits - area code included). ', 
         '66', '0', now())");
-
      
-     //PICKUPTIME Sets the pickup time window. Valid values are 1 (between 12pm and 4pm) and 2 (between 1pm and 5pm). (Default: 1)
     
     # PICKUP SUBURB
      $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
@@ -407,8 +412,10 @@ class smartsend extends base {
         'MODULE_SHIPPING_SMARTSEND_SUBURB',
         'MODULE_SHIPPING_SMARTSEND_CONTACTCOMPANY',
         'MODULE_SHIPPING_SMARTSEND_CONTACTNAME',
+        'MODULE_SHIPPING_SMARTSEND_CONTACTPHONE',
         'MODULE_SHIPPING_SMARTSEND_CONTACTEMAIL',
         'MODULE_SHIPPING_SMARTSEND_PICKUPCONTACT',
+        'MODULE_SHIPPING_SMARTSEND_PICKUPCOMPANY',
         'MODULE_SHIPPING_SMARTSEND_PICKUPADDRESS1',
         'MODULE_SHIPPING_SMARTSEND_PICKUPADDRESS2',                    
         'MODULE_SHIPPING_SMARTSEND_PICKUPPHONE',
