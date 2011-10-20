@@ -92,28 +92,50 @@ class smartsend extends base {
     $post_param_values["TOPOSTCODE"]            = $topostcode;
     $post_param_values["TOSUBURB"]              = $tosuburb;
     $post_param_values["RECEIPTEDDELIVERY"]     = MODULE_SHIPPING_SMARTSEND_RECEIPTEDDELIVERY;
-    $post_param_values["TRANSPORTASSURANCE"]    = MODULE_SHIPPING_SMARTSEND_TRANSPORTASSURANCE;
-    $post_param_values["TAILLIFT"]              = "0";
-                
-        /*
-         * CODE HERE FOR TAILLIFT 
-         */
+    $post_param_values["TRANSPORTASSURANCE"]    = $order->info["total"];
+
+    
+    
+    # tail lift - init    
+    $taillift = array();
     
     # POST ITEMS VALUE
     foreach($order->products as $key => $data){
         $i = intval($data['id']);
              
-        $products = $db->Execute("SELECT depth,length,height,description FROM smartsend_products WHERE id={$i}");    
+        $products = $db->Execute("SELECT depth,length,height,description,taillift FROM smartsend_products WHERE id={$i}");    
+        
         $products = $products->fields;
                 
+        
         $post_value_items["ITEM({$key})_HEIGHT"]         =  $products['height'];
         $post_value_items["ITEM({$key})_LENGTH"]         =  $products['length'];
         $post_value_items["ITEM({$key})_DEPTH"]          =  $products['depth'];
         $post_value_items["ITEM({$key})_WEIGHT"]         =  $data['weight'];
         $post_value_items["ITEM({$key})_DESCRIPTION"]    =  $products['description'];
        
-    }
+                    # tail lift - assigns value
+                    switch($products['taillift']){
+                        case 'none':
+                            $taillift[] = "none";break;
+                        case 'atpickup':
+                            $taillift[] = "atpickup";break;    
+                        case 'atdestination':
+                            $taillift[] = "atdestination";break;                                                         
+                        case 'both':
+                            $taillift[] = "both";break;                                                         
+                    }
+     }
+              
+    # tail lift - choose appropriate value
+    $post_param_values["TAILLIFT"] = "none";            
+    if (in_array("none",  $taillift))                                               $post_param_values["TAILLIFT"]      = "none";           
+    if (in_array("atpickup",  $taillift))                                           $post_param_values["TAILLIFT"]      = "atpickup";
+    if (in_array("atdestination",  $taillift))                                      $post_param_values["TAILLIFT"]      = "atdestination";
+    if (in_array("atpickup",  $taillift) && in_array("atdestination",  $taillift))  $post_param_values["TAILLIFT"]      = "both";
+    if (in_array("both",  $taillift))                                               $post_param_values["TAILLIFT"]      = "both";   
 
+   
     
     $post_final_values = array_merge($post_param_values,$post_value_items);
     
@@ -385,6 +407,7 @@ class smartsend extends base {
           `depth` int(11) NOT NULL,
           `length` int(11) NOT NULL,
           `height` int(11) NOT NULL,
+          `taillift` varchar(20) NOT NULL,          
           KEY `id` (`id`)
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1;");
     }
