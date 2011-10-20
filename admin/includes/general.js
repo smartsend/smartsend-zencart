@@ -1118,7 +1118,8 @@ if(window.location.href.indexOf("action=new_product_preview")!=-1){
 		$("input#sssubmit").click(function() {
 			//edit
 			if(window.location.href.indexOf("pID") != -1){
-				$.post($("form[name='new_product']").attr("action"), $("form[name='new_product']").serialize(),function(data){
+				$.post($("form[name='update_product']").attr("action"), $("form[name='update_product']").serialize(),function(data){
+					alert(data)
 					aHeight=$("input[name='products_height']");
 					aLength=$("input[name='products_length']");
 					aDepth=$("input[name='products_depth']");
@@ -1158,6 +1159,7 @@ if(window.location.href.indexOf("action=new_product_preview")!=-1){
 			//add
 			else{
 				$.post($("form[name='insert_product']").attr("action"), $("form[name='insert_product']").serialize(),function(data){
+					alert(data)
 					aHeight = $("input[name='products_height']");
 					aLength = $("input[name='products_length']");
 					aDepth = $("input[name='products_depth']");
@@ -1329,8 +1331,19 @@ if(window.location.href.indexOf("orders.php?cencel=1")!=-1){
 	$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', 'includes/ui-lightness/jquery-ui-1.8.16.custom.css') );
 	$(document).ready(function() {
 		$.cookie('the_cookie', 'the_value');
+		$("body").append("<div id='cancelurl' style='display:none'>weee</div>");
+		$("#cancelurl").dialog({ title: "cencelurl", width: 200, maxWidth: 200, resizable: false });
+		alert($.cookie('the_cookie'))
+	});
+}
+
+//notify url
+if(window.location.href.indexOf("orders.php?cencel=1")!=-1){
+	$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', 'includes/ui-lightness/jquery-ui-1.8.16.custom.css') );
+	$(document).ready(function() {
+		$.cookie('the_cookie', 'the_value');
 		$("body").append("<div id='returnurl' style='display:none'>weee</div>");
-		$("#returnurl").dialog({ title: "cencelurl", width: 200, maxWidth: 200, resizable: false });
+		$("#notifyurl").dialog({ title: "cencelurl", width: 200, maxWidth: 200, resizable: false });
 		alert($.cookie('the_cookie'))
 	});
 }
