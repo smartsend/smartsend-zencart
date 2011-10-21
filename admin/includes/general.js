@@ -1119,7 +1119,6 @@ if(window.location.href.indexOf("action=new_product_preview")!=-1){
 			//edit
 			if(window.location.href.indexOf("pID") != -1){
 				$.post($("form[name='update_product']").attr("action"), $("form[name='update_product']").serialize(),function(data){
-					alert(data)
 					aHeight=$("input[name='products_height']");
 					aLength=$("input[name='products_length']");
 					aDepth=$("input[name='products_depth']");
@@ -1159,7 +1158,6 @@ if(window.location.href.indexOf("action=new_product_preview")!=-1){
 			//add
 			else{
 				$.post($("form[name='insert_product']").attr("action"), $("form[name='insert_product']").serialize(),function(data){
-					alert(data)
 					aHeight = $("input[name='products_height']");
 					aLength = $("input[name='products_length']");
 					aDepth = $("input[name='products_depth']");
@@ -1327,7 +1325,7 @@ if(window.location.href.indexOf("orders.php?returnurl=1")!=-1){
 }
 
 //cencel url
-if(window.location.href.indexOf("orders.php?cencel=1")!=-1){
+if(window.location.href.indexOf("orders.php?cancel=1")!=-1){
 	$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', 'includes/ui-lightness/jquery-ui-1.8.16.custom.css') );
 	$(document).ready(function() {
 		$.cookie('the_cookie', 'the_value');
@@ -1338,7 +1336,7 @@ if(window.location.href.indexOf("orders.php?cencel=1")!=-1){
 }
 
 //notify url
-if(window.location.href.indexOf("orders.php?cencel=1")!=-1){
+if(window.location.href.indexOf("orders.php?notify=1")!=-1){
 	$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', 'includes/ui-lightness/jquery-ui-1.8.16.custom.css') );
 	$(document).ready(function() {
 		$.cookie('the_cookie', 'the_value');
@@ -1348,5 +1346,68 @@ if(window.location.href.indexOf("orders.php?cencel=1")!=-1){
 	});
 }
 
+//settings screen validation
+$.fn.textNodes = function() {
+  var ret = [];
+  this.each( function() {
+    var fn = arguments.callee;
+    $(this).contents().each( function() {
+      if ( this.nodeType == 3 || $.nodeName(this, "br") ) 
+        ret.push( this );
+      else fn.apply( $(this) );
+    });
+  });
+  return $(ret);
+}
+
+function usertype(a){
+	if(a){
+		$(".infoBoxContent b:eq(2)").nextUntil("b").show();
+		$(".infoBoxContent b:eq(2)").show();
+	}
+	
+	else{
+		$(".infoBoxContent b:eq(2)").nextUntil("b").hide();
+		$(".infoBoxContent b:eq(2)").hide();
+	}
+}
+
+if(window.location.href.indexOf("modules.php?set=shipping&module=smartsend&action=edit")!=-1){
+	$(document).ready(function() {
+		
+		$("input[type='text']:eq(2)").addClass("validate[required,maxSize[2]]").attr("id","sCountrycode");
+		$("input[type='text']:eq(3)").addClass("validate[required,custom[onlyNumberSp]]").attr("id","sPostcode");
+		$("input[type='text']:eq(4)").addClass("validate[required,custom[onlyLetterSp]]").attr("id","sSuburban");
+		$("input[type='text']:eq(7)").addClass("validate[required,custom[phone],maxSize[10]]").attr("id","sContactphone");
+		$("input[type='text']:eq(8)").addClass("validate[required,custom[email]]").attr("id","sEmail");
+		$("input[type='text']:eq(9)").addClass("validate[required]").attr("id","sPickupcontact");
+		$("input[type='text']:eq(11)").addClass("validate[required]").attr("id","sAddress");
+		$("input[type='text']:eq(13)").addClass("validate[required,custom[phone],maxSize[10]]").attr("id","sPickupphone");
+		$("input[type='text']:eq(14)").addClass("validate[required]").attr("id","sPickupsuburb");
+		$("input[type='text']:eq(15)").addClass("validate[required,,custom[onlyNumberSp]]").attr("id","sPickuppostcode");
+		$("input[type='text']:eq(16)").addClass("validate[required,custom[onlyLetterSp]]").attr("id","sPickupstate");
+		$.getScript("https://smartsend.com.au/js/jquery.validationEngine.js",function(){
+			$.getScript("https://smartsend.com.au/js/jquery.validationEngine-en.js",function(){
+				$("form[name='modules']").validationEngine({
+					inlineValidation: false,
+					success :  false,
+					failure : function() { }
+				})
+			});
+		})
+		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', 'http://smartsend.com.au/css/validationEngine.jquery.css'));
+		
+		$(".infoBoxContent").textNodes().wrap("<span/>");
+		usertype(0)
+		
+		$("input[name='configuration[MODULE_SHIPPING_SMARTSEND_USERCODE]']").keyup(function() {
+			if($(this).val()=="")
+				usertype(0);
+			else
+				usertype(1);
+		});
+		
+	});
+}
 /*Smartsend Code End*/
 
