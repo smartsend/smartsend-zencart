@@ -276,12 +276,14 @@ class smartsend extends base {
         '66', '0', 'zen_get_tail_class_title', 'zen_cfg_pull_down_tail_classes(',  now())");      
      */            
     
+    
     # RECEIPTEDDELIVERY
-    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) 
-        values ('RECEIPTED DELIVERY', 'MODULE_SHIPPING_SMARTSEND_RECEIPTEDDELIVERY', '', 
-        '(Optional) Boolean flag (true/false) that specifies whether or not recipient is required to sign for the consignment', 
-        '66', '0', now())");
-
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order,use_function, set_function,  date_added) 
+        values ('RECEIPTED DELIVERY', 'MODULE_SHIPPING_SMARTSEND_RECEIPTEDDELIVERY', '0', 
+        '(Optional) Yes / No  that specifies whether or not recipient is required to sign for the consignment', 
+        '66', '0', 'zen_get_rdelivery_class_title', 'zen_cfg_pull_down_rdelivery_classes(',  now())");
+    
+    
     # SERVICE TYPE
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order,use_function, set_function,  date_added) 
         values ('SERVICE TYPE', 'MODULE_SHIPPING_SMARTSEND_SERVICETYPE', '0', 
@@ -486,7 +488,6 @@ class smartsend extends base {
 
 
 /* ************************* ADDITIONAL FUNCTION **************************** */
-
 /* Name  : TAIL LIFT
  * Desc  : set the tail lift value in admin
  * Found : 'admin->shipping module'
@@ -494,29 +495,24 @@ class smartsend extends base {
  * How to access the value : just call 'MODULE_SHIPPING_SMARTSEND_TAILLIFT'
  */
 
-  # Set func TAIL LIFT
-  function zen_cfg_pull_down_tail_classes($id, $key = '') {
-    global $db;
-    $name = (($key) ? 'configuration[' . $key . ']' : 'configuration_value');
-    
+  # Set array taillift
+  function zen_arr_taillift(){
     $taillift[] = Array ("id" => "none","text" => "NO");
     $taillift[] = Array ("id" =>  "atpickup" ,"text" => "Yes - At Pickup");
     $taillift[] = Array ("id" =>  "atdestination","text" => "Yes - At Delivery");
-    $taillift[] = Array ("id" =>  "both","text" => "Yes - At Pickup and Delivery");
-    
-    return zen_draw_pull_down_menu($name, $taillift , $id);  
-    
+    $taillift[] = Array ("id" =>  "both","text" => "Yes - At Pickup and Delivery");      
+    return $taillift;
+  }  
+  
+  # Set func TAIL LIFT
+  function zen_cfg_pull_down_tail_classes($id, $key = '') {
+    $name = (($key) ? 'configuration[' . $key . ']' : 'configuration_value');
+    return zen_draw_pull_down_menu($name, zen_arr_taillift() , $id);  
   }    
   
   # Use func TAIL LIFT
-  function zen_get_tail_class_title($id) {
-    global $db;    
-    
-    $taillift[] = Array ("id" => "none","text" => "NO");
-    $taillift[] = Array ("id" =>  "atpickup" ,"text" => "Yes - At Pickup");
-    $taillift[] = Array ("id" =>  "atdestination","text" => "Yes - At Delivery");
-    $taillift[] = Array ("id" =>  "both","text" => "Yes - At Pickup and Delivery");
-    
+  function zen_get_tail_class_title($id) {   
+    $taillift = zen_arr_taillift();    
     foreach($taillift as $val){
         if($val["id"] == $id){
           return $val['text'];      
@@ -527,20 +523,15 @@ class smartsend extends base {
   
   
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ <new func> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  
-  
-  
 /* Name  : SERVICE TYPE
  * Desc  : set the service type value in admin
  * Found : 'admin->shipping module'
  * 
  * How to access the value : just call 'MODULE_SHIPPING_SMARTSEND_SERVICETYPE'
  */
-  # Set func SERVICE TYPE
-  function zen_cfg_pull_down_service_classes($id, $key = '') {
-    global $db;
-    $name = (($key) ? 'configuration[' . $key . ']' : 'configuration_value');
-    
+  
+  # Set array service type
+  function zen_arr_servicetype(){
     $service[] = Array ("id" =>  "ALL","text" => "ALL");
     $service[] = Array ("id" =>  "ROAD" ,"text" => "ROAD");
     $service[] = Array ("id" =>  "EXPRESS","text" => "EXPRESS");
@@ -556,32 +547,18 @@ class smartsend extends base {
     $service[] = Array ("id" =>  "AAEEXPRESSECONOMY","text" => "AAEEXPRESSECONOMY");
     $service[] = Array ("id" =>  "AAEEXPRESSPREMIUM","text" => "AAEEXPRESSPREMIUM");
     
+    return $service;
+  }
 
-    
-    return zen_draw_pull_down_menu($name, $service , $id);  
-    
+  # Set func SERVICE TYPE
+  function zen_cfg_pull_down_service_classes($id, $key = '') {
+    $name = (($key) ? 'configuration[' . $key . ']' : 'configuration_value');
+    return zen_draw_pull_down_menu($name, zen_arr_servicetype() , $id);      
   }    
   
   # Use func SERVICE TYPE
-  function zen_get_service_class_title($id) {
-    global $db;    
-    
-    $service[] = Array ("id" => "ALL","text" => "ALL");
-    $service[] = Array ("id" =>  "ROAD" ,"text" => "ROAD");
-    $service[] = Array ("id" =>  "EXPRESS","text" => "EXPRESS");
-    $service[] = Array ("id" =>  "ALLIEDEXPRESSROAD","text" => "ALLIEDEXPRESSROAD");
-    $service[] = Array ("id" => "ALLIEDEXPRESSOVERNIGHT","text" => "ALLIEDEXPRESSOVERNIGHT");
-    $service[] = Array ("id" =>  "MAINFREIGHTROAD" ,"text" => "MAINFREIGHTROAD");
-    $service[] = Array ("id" =>  "TNTROAD","text" => "TNTROAD");
-    $service[] = Array ("id" =>  "TNTOVERNIGHT","text" => "TNTOVERNIGHT");
-    $service[] = Array ("id" => "TNTOVERNIGHTAM","text" => "TNTOVERNIGHTAM");
-    $service[] = Array ("id" =>  "TNTNEXTFLIGHT" ,"text" => "TNTNEXTFLIGHT");
-    $service[] = Array ("id" =>  "DHLROAD","text" => "DHLROAD");
-    $service[] = Array ("id" =>  "DHLEXPRESS","text" => "DHLEXPRESS");
-    $service[] = Array ("id" =>  "AAEEXPRESSECONOMY","text" => "AAEEXPRESSECONOMY");
-    $service[] = Array ("id" =>  "AAEEXPRESSPREMIUM","text" => "AAEEXPRESSPREMIUM");
-    
-    
+  function zen_get_service_class_title($id) {   
+    $service = zen_arr_servicetype();        
     foreach($service as $val){
         if($val["id"] == $id){
           return $val['text'];      
@@ -591,36 +568,28 @@ class smartsend extends base {
   }
   
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ <new func> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  
 /* Name  : PICKUP TIME
  * Desc  : set the PICKUP TIME value in admin
  * Found : 'admin->shipping module'
  * 
  * How to access the value : just call 'MODULE_SHIPPING_SMARTSEND_TAILLIFT'
  */
-
-  # Set func PICKUP TIME
-  function zen_cfg_pull_down_picktime_classes($id, $key = '') {
-    global $db;
-    $name = (($key) ? 'configuration[' . $key . ']' : 'configuration_value');
-    
-
+  # Set array pickup time
+  function zen_arr_pickuptime(){
     $ptime[] = Array ("id" =>  "1" ,"text" => "between 12pm and 4pm");
     $ptime[] = Array ("id" =>  "2","text" => "between 1pm and 5pm");
-
-    
-    return zen_draw_pull_down_menu($name, $ptime , $id);  
-    
+    return $ptime;
+  }
+  
+  # Set func PICKUP TIME
+  function zen_cfg_pull_down_picktime_classes($id, $key = '') {
+    $name = (($key) ? 'configuration[' . $key . ']' : 'configuration_value');
+    return zen_draw_pull_down_menu($name, zen_arr_pickuptime() , $id);      
   }    
   
   # Use func PICKUP TIME
   function zen_get_picktime_class_title($id) {
-    global $db;    
-    
-    $ptime[] = Array ("id" =>  "1" ,"text" => "between 12pm and 4pm");
-    $ptime[] = Array ("id" =>  "2","text" => "between 1pm and 5pm");
-
-    
+    $ptime = zen_arr_pickuptime();
     foreach($ptime as $val){
         if($val["id"] == $id){
           return $val['text'];      
@@ -630,5 +599,36 @@ class smartsend extends base {
   }
   
   
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ <new func> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* Name  : RECEIPTED DELIVERY
+ * Desc  : set the PICKUP TIME value in admin
+ * Found : 'admin->shipping module'
+ * 
+ * How to access the value : just call 'MODULE_SHIPPING_SMARTSEND_TAILLIFT'
+ */
+
+  # Set array RECEIPTED DELIVERY
+  function zen_arr_rdelivery(){
+    $ptime[] = Array ("id" =>  "true" ,"text" => "YES");
+    $ptime[] = Array ("id" =>  "false","text" => "NO");
+    return $ptime;
+  }
+  
+  # Set func RECEIPTED DELIVERY
+  function zen_cfg_pull_down_rdelivery_classes($id, $key = '') {
+    $name = (($key) ? 'configuration[' . $key . ']' : 'configuration_value');
+    return zen_draw_pull_down_menu($name, zen_arr_rdelivery() , $id);      
+  }    
+  
+  # Use func RECEIPTED DELIVERY
+  function zen_get_rdelivery_class_title($id) {
+    $ptime = zen_arr_rdelivery();
+    foreach($ptime as $val){
+        if($val["id"] == $id){
+          return $val['text'];      
+        }
+    }
+    
+  }  
   
 ?>
