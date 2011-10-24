@@ -74,12 +74,9 @@ class smartsend extends base {
     
     $topostcode     = str_replace(" ","",($order->delivery['postcode']));
     $tocountrycode  = $order->delivery['country']['iso_code_2'];
-    $tosuburb       = $order->delivery['suburb'];
+    $tosuburb       = $order->delivery['city'];
     $sweight        = $shipping_weight;
 
-    if($tosuburb == ''){
-        $tosuburb       = $order->delivery['city'];
-    }
     
     # POST PARAMETER VALUES    
     $post_url = "http://api.dev.smartsend.com.au/";    
