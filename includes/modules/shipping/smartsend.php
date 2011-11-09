@@ -59,9 +59,9 @@ class smartsend extends base {
     
     
     $this->enabled = ((MODULE_SHIPPING_SMARTSEND_STATUS == 'True') ? true : false);
-
-       
-  }
+    
+   }
+  
   /**
    * Obtain quote from shipping system/calculations
    *
@@ -82,17 +82,16 @@ class smartsend extends base {
     $post_url = "http://api.dev.smartsend.com.au/";    
     
     $post_param_values["METHOD"]                = "GetQuote";
-    $post_param_values["FROMCOUNTRYCODE"]       = "AU";
-    $post_param_values["FROMPOSTCODE"]          = "2000";
-    $post_param_values["FROMSUBURB"]            = "SYDNEY";
+    $post_param_values["FROMCOUNTRYCODE"]       = MODULE_SHIPPING_SMARTSEND_COUNTRYCODE;
+    $post_param_values["FROMPOSTCODE"]          = MODULE_SHIPPING_SMARTSEND_POSTCODE; //"2000";
+    $post_param_values["FROMSUBURB"]            = MODULE_SHIPPING_SMARTSEND_SUBURB; //"SYDNEY";
     $post_param_values["TOCOUNTRYCODE"]         = $tocountrycode;
     $post_param_values["TOPOSTCODE"]            = $topostcode;
     $post_param_values["TOSUBURB"]              = $tosuburb;
     $post_param_values["RECEIPTEDDELIVERY"]     = MODULE_SHIPPING_SMARTSEND_RECEIPTEDDELIVERY;
     $post_param_values["TRANSPORTASSURANCE"]    = $order->info["total"];
 
-    
-    
+        
     # tail lift - init    
     $taillift = array();
     
@@ -102,8 +101,7 @@ class smartsend extends base {
              
         $products = $db->Execute("SELECT depth,length,height,description,taillift FROM smartsend_products WHERE id={$i}");    
         
-        $products = $products->fields;
-                
+        $products = $products->fields;              
         
         $post_value_items["ITEM({$key})_HEIGHT"]         =  $products['height'];
         $post_value_items["ITEM({$key})_LENGTH"]         =  $products['length'];
@@ -131,9 +129,7 @@ class smartsend extends base {
     if (in_array("atdestination",  $taillift))                                      $post_param_values["TAILLIFT"]      = "atdestination";
     if (in_array("atpickup",  $taillift) && in_array("atdestination",  $taillift))  $post_param_values["TAILLIFT"]      = "both";
     if (in_array("both",  $taillift))                                               $post_param_values["TAILLIFT"]      = "both";   
-
-   
-    
+       
     $post_final_values = array_merge($post_param_values,$post_value_items);
     
     # POST PARAMETER AND ITEMS VALUE URLENCODE
@@ -142,9 +138,9 @@ class smartsend extends base {
             { $post_string .= "$key=" . urlencode( $value ) . "&"; }
     $post_string = rtrim( $post_string, "& " );
 
-   //echo $post_url."?".$post_string;
+    //echo $post_url."?".$post_string;
     
-    /*
+    
     # START CURL PROCESS
     $request = curl_init($post_url); 
     curl_setopt($request, CURLOPT_HEADER, 0); 
@@ -153,14 +149,9 @@ class smartsend extends base {
     curl_setopt($request, CURLOPT_SSL_VERIFYPEER, FALSE);
     $post_response = curl_exec($request); 
     curl_close ($request); // close curl object    
-    var_dump($post_response);
-    */
-    
-    # test response
-    $str_resp = "ACK=Success&QUOTE(0)_TOTAL=26.47&QUOTE(0)_SERVICE=Road&QUOTE(0)_ESTIMATEDTRANSITTIME=1-2%20business%20days&QUOTE(0)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(0)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTE(1)_TOTAL=102.92&QUOTE(1)_SERVICE=Overnight&QUOTE(1)_ESTIMATEDTRANSITTIME=Next%20business%20day&QUOTE(1)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(1)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTE(2)_TOTAL=150.15&QUOTE(2)_SERVICE=Overnight%20by%209am&QUOTE(2)_ESTIMATEDTRANSITTIME=Next%20business%20day%20delivered%20by%209am&QUOTE(2)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(2)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTECOUNT=3";
-    
+          
     # parse output
-    parse_str($str_resp, $arr_resp);
+    parse_str($post_response, $arr_resp);
     
     $quote_count = ((int) $arr_resp["QUOTECOUNT"]) - 1;
         
@@ -174,17 +165,21 @@ class smartsend extends base {
     # ASSIGNING VALUES TO ARRAY METHODS    
     for ($x=0; $x<=$quote_count; $x++)
     {
-      $methods[] = array( 'id' => "quote{$x}",  'title' => "{$arr_resp["QUOTE({$x})_SERVICE"]}"." <label>{$arr_resp["QUOTE({$x})_ESTIMATEDTRANSITTIME"]}</label>".$script,'cost' => $arr_resp["QUOTE({$x})_TOTAL"] ) ;      
+        $methods[] = array( 
+                'id' => "quote{$x}",  
+                'title' => "{$arr_resp["QUOTE({$x})_SERVICE"]}"." <label>{$arr_resp["QUOTE({$x})_ESTIMATEDTRANSITTIME"]}</label>".$script,
+                'cost' => $arr_resp["QUOTE({$x})_TOTAL"] 
+         ) ;              
     }
    
     $sarray[]   = array(); 
-    $resultarr  = array() ;
+    $resultarr  = array();
 
     foreach($methods as $key => $value) {
             $sarray[ $key ] = $value['cost'] ;
     }
 
-    asort( $sarray ) ;
+    asort( $sarray );
 
     foreach($sarray as $key => $value) {
             $resultarr[ $key ] = $methods[ $key ] ;
@@ -203,7 +198,11 @@ class smartsend extends base {
             }
           } ;
 
-        $this->quotes = array('id' => $this->code, 'module' => $this->title,'methods' => array( array('id' => $method,'title' => $temp['title'],'cost' => $temp['cost'] )));
+        $this->quotes = array(
+                'id' => $this->code, 
+                'module' => $this->title,
+                'methods' => array( array('id' => $method,'title' => $temp['title'],'cost' => $temp['cost'] ))
+        );
     }    
     
     if ($this->tax_class > 0) {
@@ -229,13 +228,11 @@ class smartsend extends base {
       $check_query = $db->Execute("select configuration_value from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_SHIPPING_SMARTSEND_STATUS'");
       $this->_check = $check_query->RecordCount();
     }
-    
-        
+            
     return $this->_check;
-
-    
-    
   }
+  
+  
   /**
    * Install the shipping module and its configuration settings
    *
