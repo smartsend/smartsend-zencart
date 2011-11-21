@@ -82,15 +82,9 @@ class smartsend extends base {
     $post_url = "http://api.dev.smartsend.com.au/";    
     
     $post_param_values["METHOD"]                = "GetQuote";
-<<<<<<< HEAD
-    $post_param_values["FROMCOUNTRYCODE"]       = "AU";
-    $post_param_values["FROMPOSTCODE"]          = "3000";
-    $post_param_values["FROMSUBURB"]            = "Melbourne";
-=======
     $post_param_values["FROMCOUNTRYCODE"]       = MODULE_SHIPPING_SMARTSEND_COUNTRYCODE;
     $post_param_values["FROMPOSTCODE"]          = MODULE_SHIPPING_SMARTSEND_POSTCODE; //"2000";
     $post_param_values["FROMSUBURB"]            = MODULE_SHIPPING_SMARTSEND_SUBURB; //"SYDNEY";
->>>>>>> a36bab1dc29b7e5577075f1ec16e319be49cb393
     $post_param_values["TOCOUNTRYCODE"]         = $tocountrycode;
     $post_param_values["TOPOSTCODE"]            = $topostcode;
     $post_param_values["TOSUBURB"]              = $tosuburb;
@@ -144,11 +138,7 @@ class smartsend extends base {
             { $post_string .= "$key=" . urlencode( $value ) . "&"; }
     $post_string = rtrim( $post_string, "& " );
 
-<<<<<<< HEAD
-   echo $post_url."?".$post_string;
-=======
     //echo $post_url."?".$post_string;
->>>>>>> a36bab1dc29b7e5577075f1ec16e319be49cb393
     
     
     # START CURL PROCESS
@@ -159,16 +149,7 @@ class smartsend extends base {
     curl_setopt($request, CURLOPT_SSL_VERIFYPEER, FALSE);
     $post_response = curl_exec($request); 
     curl_close ($request); // close curl object    
-<<<<<<< HEAD
-    var_dump($post_response);
-    
-    
-    # test response
-    //$str_resp = "ACK=Success&QUOTE(0)_TOTAL=26.47&QUOTE(0)_SERVICE=Road&QUOTE(0)_ESTIMATEDTRANSITTIME=1-2%20business%20days&QUOTE(0)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(0)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTE(1)_TOTAL=102.92&QUOTE(1)_SERVICE=Overnight&QUOTE(1)_ESTIMATEDTRANSITTIME=Next%20business%20day&QUOTE(1)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(1)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTE(2)_TOTAL=150.15&QUOTE(2)_SERVICE=Overnight%20by%209am&QUOTE(2)_ESTIMATEDTRANSITTIME=Next%20business%20day%20delivered%20by%209am&QUOTE(2)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(2)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTECOUNT=3";
-    
-=======
           
->>>>>>> a36bab1dc29b7e5577075f1ec16e319be49cb393
     # parse output
     parse_str($post_response, $arr_resp);
     
