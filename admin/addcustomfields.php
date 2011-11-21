@@ -57,8 +57,7 @@
 				$post_param_values["BOOKING({$bookingCount})_PICKUPSUBURB"] = getConfig("MODULE_SHIPPING_SMARTSEND_PICKUPSUBURB");
 				$post_param_values["BOOKING({$bookingCount})_PICKUPPOSTCODE"] = getConfig("MODULE_SHIPPING_SMARTSEND_PICKUPPOSTCODE");
 				$post_param_values["BOOKING({$bookingCount})_PICKUPSTATE"] = getConfig("MODULE_SHIPPING_SMARTSEND_PICKUPSTATE");
-				//$post_param_values["BOOKING({$bookingCount})_PICKUPDATE"] = getConfig("MODULE_SHIPPING_SMARTSEND_PICKUPDATE");
-				//$post_param_values["BOOKING({$bookingCount})_PICKUPTIME"] = getConfig("MODULE_SHIPPING_SMARTSEND_PICKUPTIME");
+
 				
 				$post_param_values["BOOKING({$bookingCount})_DESTCOMPANY"] = $customerInfos["customers_company"];
 				$post_param_values["BOOKING({$bookingCount})_DESTCONTACT"] = $customerInfos["customers_name"];
@@ -74,7 +73,7 @@
 				$result = $db->ExecuteRandomMulti("SELECT products_quantity, products_id FROM orders_products WHERE orders_id={$item}");
 				while($row = mysql_fetch_array($result->resource)){
 					
-					$result2 = $db->ExecuteRandomMulti("SELECT description, depth, height, length, taillift FROM smartsend_products WHERE id={$row['products_id']}");
+					$result2 = $db->ExecuteRandomMulti("SELECT products.products_id AS products_id, smartsend_products.description AS description, smartsend_products.depth AS depth, smartsend_products.height AS height, smartsend_products.length AS length, smartsend_products.taillift AS taillift FROM products, smartsend_products WHERE smartsend_products.id={$row['products_id']} AND products.products_id={$row['products_id']}");
 					//item loop
 					
 					while($row2 = mysql_fetch_array($result2->resource)){
@@ -83,6 +82,7 @@
 							$post_value_items["BOOKING({$bookingCount})_ITEM($itemCount)_DEPTH"] = $row2["depth"];
 							$post_value_items["BOOKING({$bookingCount})_ITEM($itemCount)_HEIGHT"] = $row2["height"];
 							$post_value_items["BOOKING({$bookingCount})_ITEM($itemCount)_LENGTH"] = $row2["length"];
+							$post_value_items["BOOKING({$bookingCount})_ITEM($itemCount)_WEIGHT"] = $row2["products_id"];
 							
 							if($row2["taillift"]=="none")
 								$tl_none=1;
@@ -119,59 +119,42 @@
 				$bookingCount++;
 			}
 			
-			foreach( $post_value_items as $key => $value ){
+			/*foreach( $post_value_items as $key => $value ){
 				echo "$key - $value\n";
 			}
 			
 			foreach( $post_param_values as $key => $value ){
 				echo "$key - $value\n";
-			}
+			}*/
 					
-			# POST PARAMETER VALUES
-				
-						
-			
-			# POST ITEMS VALUE
-			/*foreach($order->products as $key => $data){
-				$i = intval($data['id']);
-					 
-				$products = $db->Execute("SELECT depth,length,height,description FROM smartsend_products WHERE id={$i}");    
-				$products = $products->fields;
-						
-				$post_value_items["ITEM({$key})_HEIGHT"]         =  $products['height'];
-				$post_value_items["ITEM({$key})_LENGTH"]         =  $products['length'];
-				$post_value_items["ITEM({$key})_DEPTH"]          =  $products['depth'];
-				$post_value_items["ITEM({$key})_WEIGHT"]         =  $data['weight'];
-				$post_value_items["ITEM({$key})_DESCRIPTION"]    =  $products['description'];
-			   
-			}
 		
-			
-			$post_final_values = array_merge($post_param_values,$post_value_items);*/
+			$post_final_values = array_merge($post_param_values,$post_value_items);
 			
 			# POST PARAMETER AND ITEMS VALUE URLENCODE
-			/*$post_string = "";
-			foreach( $post_final_values as $key => $value )
-					{ $post_string .= "$key=" . urlencode( $value ) . "&"; }
-			$post_string = rtrim( $post_string, "& " );*/
-		
-		   //echo $post_url."?".$post_string;
+			$post_string = "";
+			foreach( $post_final_values as $key => $value ){
+				if( $value!="" )
+				$post_string .= "$key=" . urlencode( $value ) . "&";
+			}
+			//$post_string .= "BOOKING(0)_PICKUPDATE=25/12/2011&BOOKING(0)_PICKUPTIME=1& ";
+			$post_string = rtrim( $post_string, "& " );
 			
-			/*
+			//echo $post_string;
 			# START CURL PROCESS
+			
+			$post_url = "http://api.dev.smartsend.com.au/";
 			$request = curl_init($post_url); 
 			curl_setopt($request, CURLOPT_HEADER, 0); 
 			curl_setopt($request, CURLOPT_RETURNTRANSFER, 1); 
 			curl_setopt($request, CURLOPT_POSTFIELDS, $post_string);
 			curl_setopt($request, CURLOPT_SSL_VERIFYPEER, FALSE);
 			$post_response = curl_exec($request); 
-			curl_close ($request); // close curl object    
-			var_dump($post_response);
-			*/
+			curl_close ($request); // close curl object   *
+			//var_dump($post_response);
 			
-			/*$products = $db->Execute("select configuration_key from configuration where configuration_id = '61'");
-			$products = $products->fields;*/
-			//echo $products['configuration_key'];
+			//echo $post_url."?".$post_string;
+			echo $post_response;
+			//echo "ACK=FAILED&TOKEN=ejfklj453589&BOOKINGURL=http://www.google.com&ERROR(0)=Error%20Message%201&ERROR(1)=Error%20Message%202";
 		}
 		
 		if($_POST["action"]=="add"){
@@ -246,7 +229,7 @@
 			"atpickup" : 1, 
 			"atdestination" : 2, 
 			"both" : 3}[tl.toLowerCase()];
-				$("select[name=\'TailLift\'] option[value=\'"+TailLiftTypeID+"\']").attr("selected", true)
+				$("select[name=\'TailLift\'] option[value=\'"+TailLiftTypeID+"\']").attr("selected", true);
 			';
 			
 		}
