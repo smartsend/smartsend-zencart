@@ -86,8 +86,8 @@ class smartsend extends base {
     
     $post_param_values["METHOD"]                = "GetQuote";
     $post_param_values["FROMCOUNTRYCODE"]       = "AU";
-    $post_param_values["FROMPOSTCODE"]          = "2000";
-    $post_param_values["FROMSUBURB"]            = "SYDNEY";
+    $post_param_values["FROMPOSTCODE"]          = "3000";
+    $post_param_values["FROMSUBURB"]            = "Melbourne";
     $post_param_values["TOCOUNTRYCODE"]         = $tocountrycode;
     $post_param_values["TOPOSTCODE"]            = $topostcode;
     $post_param_values["TOSUBURB"]              = $tosuburb;
@@ -145,9 +145,9 @@ class smartsend extends base {
             { $post_string .= "$key=" . urlencode( $value ) . "&"; }
     $post_string = rtrim( $post_string, "& " );
 
-   //echo $post_url."?".$post_string;
+   echo $post_url."?".$post_string;
     
-    /*
+    
     # START CURL PROCESS
     $request = curl_init($post_url); 
     curl_setopt($request, CURLOPT_HEADER, 0); 
@@ -157,13 +157,13 @@ class smartsend extends base {
     $post_response = curl_exec($request); 
     curl_close ($request); // close curl object    
     var_dump($post_response);
-    */
+    
     
     # test response
-    $str_resp = "ACK=Success&QUOTE(0)_TOTAL=26.47&QUOTE(0)_SERVICE=Road&QUOTE(0)_ESTIMATEDTRANSITTIME=1-2%20business%20days&QUOTE(0)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(0)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTE(1)_TOTAL=102.92&QUOTE(1)_SERVICE=Overnight&QUOTE(1)_ESTIMATEDTRANSITTIME=Next%20business%20day&QUOTE(1)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(1)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTE(2)_TOTAL=150.15&QUOTE(2)_SERVICE=Overnight%20by%209am&QUOTE(2)_ESTIMATEDTRANSITTIME=Next%20business%20day%20delivered%20by%209am&QUOTE(2)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(2)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTECOUNT=3";
+    //$str_resp = "ACK=Success&QUOTE(0)_TOTAL=26.47&QUOTE(0)_SERVICE=Road&QUOTE(0)_ESTIMATEDTRANSITTIME=1-2%20business%20days&QUOTE(0)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(0)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTE(1)_TOTAL=102.92&QUOTE(1)_SERVICE=Overnight&QUOTE(1)_ESTIMATEDTRANSITTIME=Next%20business%20day&QUOTE(1)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(1)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTE(2)_TOTAL=150.15&QUOTE(2)_SERVICE=Overnight%20by%209am&QUOTE(2)_ESTIMATEDTRANSITTIME=Next%20business%20day%20delivered%20by%209am&QUOTE(2)_ESTIMATEDTRANSITTIME_MINDAYS=1&QUOTE(2)_ESTIMATEDTRANSITTIME_MAXDAYS=1&QUOTECOUNT=3";
     
     # parse output
-    parse_str($str_resp, $arr_resp);
+    parse_str($post_response, $arr_resp);
     
     $quote_count = ((int) $arr_resp["QUOTECOUNT"]) - 1;
         
