@@ -108,7 +108,7 @@ class smartsend extends base {
         $post_value_items["ITEM({$key})_DEPTH"]          =  $products['depth'];
         $post_value_items["ITEM({$key})_WEIGHT"]         =  $data['weight'];
         $post_value_items["ITEM({$key})_DESCRIPTION"]    =  $products['description'];
-       
+       var_dump($products);
                     # tail lift - assigns value
                     switch($products['taillift']){
                         case 'none':
