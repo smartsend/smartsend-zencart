@@ -138,7 +138,7 @@ class smartsend extends base {
             { $post_string .= "$key=" . urlencode( $value ) . "&"; }
     $post_string = rtrim( $post_string, "& " );
 
-    //echo $post_url."?".$post_string;
+    echo $post_url."?".$post_string;
     
     
     # START CURL PROCESS
@@ -149,7 +149,9 @@ class smartsend extends base {
     curl_setopt($request, CURLOPT_SSL_VERIFYPEER, FALSE);
     $post_response = curl_exec($request); 
     curl_close ($request); // close curl object    
-          
+	
+	var_dump($post_response);
+	
     # parse output
     parse_str($post_response, $arr_resp);
     
